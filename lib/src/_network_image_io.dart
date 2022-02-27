@@ -264,6 +264,7 @@ class ExtendedNetworkImageProvider
         res=buffer.asUint8List(8);
         break;
       case 'h50':
+        print('h50');
         String hexString=utf8.decode(bytes);
         Uint8List encryptBytes=hexToUnitList(hexString);
         List<int> ivBytes=[];
@@ -289,6 +290,7 @@ class ExtendedNetworkImageProvider
         final encrypt.Encrypted encrypted = encrypt.Encrypted(Uint8List.fromList(aesBytes));
         final List<int> decrypted = encrypter.decryptBytes(encrypted, iv: iv);
         res=Uint8List.fromList(decrypted);
+        print(res);
         break;
       case 'js':
         print('jsd_start:');
