@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui show Codec;
@@ -11,6 +12,9 @@ import 'package:xxtea/xxtea.dart';
 import 'extended_image_provider.dart';
 import 'extended_network_image_provider.dart' as image_provider;
 import 'platform.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:flutter_qjs/flutter_qjs.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
 class ExtendedNetworkImageProvider
     extends ImageProvider<image_provider.ExtendedNetworkImageProvider>
@@ -90,6 +94,7 @@ class ExtendedNetworkImageProvider
   /// After this time the cache is expired and the image is reloaded.
   @override
   final Duration? cacheMaxAge;
+
 
   @override
   ImageStreamCompleter load(
@@ -218,7 +223,32 @@ class ExtendedNetworkImageProvider
 
     return data;
   }
-  Uint8List decrypt(Uint8List bytes,String type){
+  int hex(int c) {
+    if (c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0)) {
+      return c - '0'.codeUnitAt(0);
+    }
+    if (c >= 'A'.codeUnitAt(0) && c <= 'F'.codeUnitAt(0)) {
+      return (c - 'A'.codeUnitAt(0)) + 10;
+    }
+    return 0;
+  }
+
+  Uint8List hexToUnitList(String str) {
+    int length = str.length;
+    if (length % 2 != 0) {
+      str = "0" + str;
+      length++;
+    }
+    List<int> s = str.toUpperCase().codeUnits;
+    Uint8List bArr = Uint8List(length >> 1);
+    for (int i = 0; i < length; i += 2) {
+      bArr[i >> 1] = ((hex(s[i]) << 4) | hex(s[i + 1]));
+    }
+    return bArr;
+  }
+  Future<Uint8List> decrypt(Uint8List bytes,String type,String subType)async{
+    var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
+    var js=jsFile.readAsStringSync();
     Uint8List res=bytes;
     switch(type){
       case 'xjmh':
@@ -233,6 +263,51 @@ class ExtendedNetworkImageProvider
         ByteBuffer buffer = bytes.buffer;
         res=buffer.asUint8List(8);
         break;
+      case 'h50':
+        String hexString=utf8.decode(bytes);
+        Uint8List encryptBytes=hexToUnitList(hexString);
+        List<int> ivBytes=[];
+        List<int> aesBytes=[];
+        for (var index=0;index<encryptBytes.length;index++){
+          if(index<16){
+            ivBytes.add(encryptBytes[index]);
+          }else{
+            aesBytes.add(encryptBytes[index]);
+          }
+        }
+        while(true){
+          if(aesBytes.length%16!=0){
+            aesBytes.add(0);
+          }else{
+            break;
+          }
+        }
+        String base64Key='unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
+        final encrypt.Key key = encrypt.Key.fromBase64(base64Key);
+        final encrypt.IV iv = encrypt.IV(Uint8List.fromList(ivBytes));
+        final encrypt.Encrypter encrypter = encrypt.Encrypter(encrypt.AES(key,mode: encrypt.AESMode.cfb64,padding: null));
+        final encrypt.Encrypted encrypted = encrypt.Encrypted(Uint8List.fromList(aesBytes));
+        final List<int> decrypted = encrypter.decryptBytes(encrypted, iv: iv);
+        res=Uint8List.fromList(decrypted);
+        break;
+      case 'js':
+        FlutterQjs? jsEngine = FlutterQjs(
+          stackSize: 1024 * 1024, // change stack size here.
+        );
+        try {
+          jsEngine.dispatch();
+          jsEngine.evaluate(js);
+          String base64Res=jsEngine.evaluate(subType+'("'+base64Encode(bytes)+'");') as String;
+          res=base64Decode(base64Res);
+          jsEngine.port.close(); // stop dispatch loop
+          jsEngine.close();      // close engine
+        } on JSError catch(e) {
+          print(e);            // catch reference leak exception
+        }
+        jsEngine = null;
+
+
+        break;
 
     }
     return res;
@@ -245,13 +320,25 @@ class ExtendedNetworkImageProvider
     try {
       String newUrl=key.url;
       String encryptType='';
+      String encryptSubType='';
+      List<String> urlArr=[];
       if(newUrl.endsWith('.t')||newUrl.endsWith('.tg')){
         encryptType='xjmh';
-      }
-      if(newUrl.endsWith('.lu')){
+      }else if(newUrl.endsWith('.lu')){
         encryptType='91lu';
         newUrl=newUrl.replaceAll('.lu', '');
+      }else if(newUrl.endsWith('.h50')){
+        encryptType='h50';
+        newUrl=newUrl.replaceAll('.h50', '');
+      }else{
+        urlArr=newUrl.split('.jsd_');
+        if(urlArr.length==2){
+          newUrl=urlArr[0];
+          encryptType='js';
+          encryptSubType=urlArr[1];
+        }
       }
+
       final Uri resolved = Uri.base.resolve(newUrl);
       final HttpClientResponse? response = await _tryGetResponse(resolved);
       if (response == null || response.statusCode != HttpStatus.ok) {
@@ -279,7 +366,7 @@ class ExtendedNetworkImageProvider
         return Future<Uint8List>.error(
             StateError('NetworkImage is an empty file: $resolved'));
       }
-      bytes=decrypt(bytes, encryptType);
+      bytes=await decrypt(bytes, encryptType,encryptSubType);
       return bytes;
     } on OperationCanceledError catch (_) {
       if (printError) {
