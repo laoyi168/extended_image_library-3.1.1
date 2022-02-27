@@ -15,6 +15,7 @@ import 'platform.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:aes_crypt_null_safe/aes_crypt_null_safe.dart';
 
 class ExtendedNetworkImageProvider
     extends ImageProvider<image_provider.ExtendedNetworkImageProvider>
@@ -290,12 +291,20 @@ class ExtendedNetworkImageProvider
           }
         }
         String base64Key='unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
-        final encrypt.Key key = encrypt.Key.fromBase64(base64Key);
+        /*final encrypt.Key key = encrypt.Key.fromBase64(base64Key);
         final encrypt.IV iv = encrypt.IV(Uint8List.fromList(ivBytes));
         final encrypt.Encrypter encrypter = encrypt.Encrypter(encrypt.AES(key,mode: encrypt.AESMode.cfb64,padding: null));
         final encrypt.Encrypted encrypted = encrypt.Encrypted(Uint8List.fromList(aesBytes));
         final List<int> decrypted = encrypter.decryptBytes(encrypted, iv: iv);
-        res=Uint8List.fromList(decrypted);
+        res=Uint8List.fromList(decrypted);*/
+        var crypt = AesCrypt();
+        Uint8List key = base64Decode(base64Key);
+        Uint8List iv = Uint8List.fromList(ivBytes);
+        AesMode mode = AesMode.cfb; // Ok. I know it's meaningless here.
+        crypt.aesSetKeys(key, iv);
+        crypt.aesSetMode(mode);
+        Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
+        res=decryptedData;
         print(res);
         break;
       case 'js':
