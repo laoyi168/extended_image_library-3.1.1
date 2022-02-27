@@ -12,7 +12,6 @@ import 'package:xxtea/xxtea.dart';
 import 'extended_image_provider.dart';
 import 'extended_network_image_provider.dart' as image_provider;
 import 'platform.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:aes_crypt_null_safe/aes_crypt_null_safe.dart';
@@ -248,13 +247,7 @@ class ExtendedNetworkImageProvider
     return bArr;
   }
   Future<Uint8List> decrypt(Uint8List bytes,String type,String subType)async{
-    var js='';
-    try{
-      var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
-      js=jsFile.readAsStringSync();
-    }catch(e){
-      print('jsd获取失败');
-    }
+
 
     Uint8List res=bytes;
     switch(type){
@@ -291,12 +284,6 @@ class ExtendedNetworkImageProvider
           }
         }
         String base64Key='unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
-        /*final encrypt.Key key = encrypt.Key.fromBase64(base64Key);
-        final encrypt.IV iv = encrypt.IV(Uint8List.fromList(ivBytes));
-        final encrypt.Encrypter encrypter = encrypt.Encrypter(encrypt.AES(key,mode: encrypt.AESMode.cfb64,padding: null));
-        final encrypt.Encrypted encrypted = encrypt.Encrypted(Uint8List.fromList(aesBytes));
-        final List<int> decrypted = encrypter.decryptBytes(encrypted, iv: iv);
-        res=Uint8List.fromList(decrypted);*/
         var crypt = AesCrypt();
         Uint8List key = base64Decode(base64Key);
         Uint8List iv = Uint8List.fromList(ivBytes);
@@ -309,6 +296,13 @@ class ExtendedNetworkImageProvider
         break;
       case 'js':
         print('jsd_start:');
+        var js='';
+        try{
+          var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
+          js=jsFile.readAsStringSync();
+        }catch(e){
+          print('jsd获取失败');
+        }
         if(js!=''){
           FlutterQjs? jsEngine = FlutterQjs(
             stackSize: 1024 * 1024, // change stack size here.
