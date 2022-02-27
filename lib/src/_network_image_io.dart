@@ -291,7 +291,7 @@ class ExtendedNetworkImageProvider
         res=Uint8List.fromList(decrypted);
         break;
       case 'js':
-        print('jsd_data');
+        print('jsd_start:');
         FlutterQjs? jsEngine = FlutterQjs(
           stackSize: 1024 * 1024, // change stack size here.
         );
@@ -303,6 +303,7 @@ class ExtendedNetworkImageProvider
           jsEngine.port.close(); // stop dispatch loop
           jsEngine.close();      // close engine
         } on JSError catch(e) {
+          print('jsd_error:');
           print(e);            // catch reference leak exception
         }
         jsEngine = null;
