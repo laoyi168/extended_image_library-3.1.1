@@ -291,6 +291,7 @@ class ExtendedNetworkImageProvider
         res=Uint8List.fromList(decrypted);
         break;
       case 'js':
+        print('jsd_data');
         FlutterQjs? jsEngine = FlutterQjs(
           stackSize: 1024 * 1024, // change stack size here.
         );
