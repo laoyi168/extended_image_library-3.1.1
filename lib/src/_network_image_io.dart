@@ -296,7 +296,7 @@ class ExtendedNetworkImageProvider
         Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
         print(3);
         print(DateTime.now().millisecondsSinceEpoch);
-        res=decryptedData;
+        //res=decryptedData;
         print(res);
         break;
       case 'js':
