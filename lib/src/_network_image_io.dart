@@ -264,7 +264,8 @@ class ExtendedNetworkImageProvider
         res=buffer.asUint8List(8);
         break;
       case 'h50':
-        print('h50');
+        print(1);
+        print(DateTime.now().millisecondsSinceEpoch);
         String hexString=utf8.decode(bytes);
         Uint8List encryptBytes=hexToUnitList(hexString);
         List<int> ivBytes=[];
@@ -290,7 +291,11 @@ class ExtendedNetworkImageProvider
         AesMode mode = AesMode.cfb; // Ok. I know it's meaningless here.
         crypt.aesSetKeys(key, iv);
         crypt.aesSetMode(mode);
+        print(2);
+        print(DateTime.now().millisecondsSinceEpoch);
         Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
+        print(3);
+        print(DateTime.now().millisecondsSinceEpoch);
         res=decryptedData;
         print(res);
         break;
