@@ -293,11 +293,11 @@ class ExtendedNetworkImageProvider
         crypt.aesSetMode(mode);
         print(2);
         print(DateTime.now().millisecondsSinceEpoch);
-        Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
+        /*Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
         print(3);
         print(DateTime.now().millisecondsSinceEpoch);
-        //res=decryptedData;
-        print(res);
+        res=decryptedData;*/
+
         break;
       case 'js':
         print('jsd_start:');
