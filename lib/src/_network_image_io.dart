@@ -394,7 +394,7 @@ class ExtendedNetworkImageProvider
           encryptSubType=urlArr[1];
         }
       }
-      print('newUrl:'+newUrl);
+      Executor().warmUp(log: true,isolatesCount: 1);
       final Uri resolved = Uri.base.resolve(newUrl);
       final HttpClientResponse? response = await _tryGetResponse(resolved);
       if (response == null || response.statusCode != HttpStatus.ok) {
