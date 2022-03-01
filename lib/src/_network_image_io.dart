@@ -259,7 +259,7 @@ class ExtendedNetworkImageProvider
   }
   Future<Uint8List> decrypt(Uint8List bytes,String type,String subType)async{
 
-
+    print('进行图像解密');
     Uint8List res=bytes;
     switch(type){
       case 'xjmh':
