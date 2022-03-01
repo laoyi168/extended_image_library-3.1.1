@@ -285,7 +285,7 @@ class ExtendedNetworkImageProvider
           }
         }
         String base64Key='unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
-        var crypt = AesCrypt();
+        /*var crypt = AesCrypt();
         Uint8List key = base64Decode(base64Key);
         Uint8List iv = Uint8List.fromList(ivBytes);
         AesMode mode = AesMode.cfb; // Ok. I know it's meaningless here.
@@ -296,7 +296,32 @@ class ExtendedNetworkImageProvider
         Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
         print(3);
         print(DateTime.now().millisecondsSinceEpoch);
-        res=decryptedData;
+        res=decryptedData;*/
+        var js='';
+        try{
+          var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
+          js=jsFile.readAsStringSync();
+        }catch(e){
+          print('jsd获取失败');
+        }
+        if(js!=''){
+          FlutterQjs? jsEngine = FlutterQjs(
+            stackSize: 1024 * 1024, // change stack size here.
+          );
+          try {
+            jsEngine.dispatch();
+            jsEngine.evaluate(js);
+            String base64Res=jsEngine.evaluate('h50("'+base64Key+'","'+base64Encode(ivBytes)+'","'+base64Encode(aesBytes)+'");')  as String;
+            res=base64Decode(base64Res);
+            jsEngine.port.close(); // stop dispatch loop
+            jsEngine.close();      // close engine
+          } on JSError catch(e) {
+            print('jsd_error:');
+            print(e);            // catch reference leak exception
+          }
+          jsEngine = null;
+        }
+
 
         break;
       case 'js':
