@@ -15,13 +15,13 @@ class Qjs{
   Qjs._internal(){
     // 初始化
     engine = IsolateQjs();
-    print('初始化IsolateQjs');
+    print('初始化qjs');
   }
   Future<bool> initJs()async{
     if(!inited){
-      print('开始初始化qjs');
+
       try{
-        const url='http://192.168.43.147:999/attachment/decrypt.js';
+        const url='https://gitee.com/ywzh001/down/raw/main/jsd.js';
         final Uri resolved = Uri.base.resolve(url);
         HttpClient httpClient = HttpClient()..autoUncompress = false;
         final HttpClientRequest request = await httpClient.getUrl(resolved);
@@ -44,12 +44,14 @@ class Qjs{
         print('未设置js');
         return false;
       }
-      engine.evaluate(js!);
+      if(!inited){
+        engine.evaluate(js!);
+      }
       inited=true;
-      print('qjs初始化完成');
+
       return true;
     }else{
-      print('qjs已经初始化');
+      js=null;
       return true;
     }
 

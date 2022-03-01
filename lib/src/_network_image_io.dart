@@ -14,9 +14,7 @@ import 'extended_image_provider.dart';
 import 'extended_network_image_provider.dart' as image_provider;
 import 'platform.dart';
 import 'package:flutter_qjs/flutter_qjs.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:aes_crypt_null_safe/aes_crypt_null_safe.dart';
-import 'package:isolate/isolate.dart';
 import 'package:worker_manager/worker_manager.dart';
 
 class ExtendedNetworkImageProvider
@@ -41,7 +39,7 @@ class ExtendedNetworkImageProvider
     this.imageCacheName,
     this.cacheMaxAge,
   });
-  //final LoadBalancer? loadBalancer;
+
 
   /// The name of [ImageCache], you can define custom [ImageCache] to store this provider.
   @override
@@ -250,17 +248,10 @@ class ExtendedNetworkImageProvider
     }
     return bArr;
   }
-  /*Future<LoadBalancer> loadBalancer = LoadBalancer.create(2, IsolateRunner.spawn);
-  Future<Uint8List> useLoadBalancer(Map<String,dynamic> data) async {
-    final lb = await loadBalancer;
-    return await lb.run<Uint8List,Map<String,dynamic>>(decryptTest, data);
-  }*/
   Future<Uint8List> decryptTest(Map<String,dynamic> params)async{
     return await decrypt(params['bytes'] as Uint8List, params['type'] as String, params['subType'] as String);
   }
   Future<Uint8List> decrypt(Uint8List bytes,String type,String subType)async{
-
-    print('进行图像解密');
     Uint8List res=bytes;
     switch(type){
       case 'xjmh':
@@ -276,8 +267,6 @@ class ExtendedNetworkImageProvider
         res=buffer.asUint8List(8);
         break;
       case 'h50':
-        print(1);
-        print(DateTime.now().millisecondsSinceEpoch);
         String hexString=utf8.decode(bytes);
         Uint8List encryptBytes=hexToUnitList(hexString);
         List<int> ivBytes=[];
@@ -303,69 +292,9 @@ class ExtendedNetworkImageProvider
         AesMode mode = AesMode.cfb; // Ok. I know it's meaningless here.
         crypt.aesSetKeys(key, iv);
         crypt.aesSetMode(mode);
-        print(2);
-        print(DateTime.now().millisecondsSinceEpoch);
         Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
-        print(3);
-        print(DateTime.now().millisecondsSinceEpoch);
         res=decryptedData;
-        /*var js='';
-        try{
-          var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
-          js=jsFile.readAsStringSync();
-        }catch(e){
-          print('jsd获取失败');
-        }
-        if(js!=''){
-          FlutterQjs? jsEngine = FlutterQjs(
-            stackSize: 1024 * 1024, // change stack size here.
-          );
-          try {
-            jsEngine.dispatch();
-            jsEngine.evaluate(js);
-            String base64Res=jsEngine.evaluate('h50("'+base64Key+'","'+base64Encode(ivBytes)+'","'+base64Encode(aesBytes)+'");')  as String;
-            res=base64Decode(base64Res);
-            jsEngine.port.close(); // stop dispatch loop
-            jsEngine.close();      // close engine
-          } on JSError catch(e) {
-            print('jsd_error:');
-            print(e);            // catch reference leak exception
-          }
-          jsEngine = null;
-        }*/
-
-
-
         break;
-      case 'js':
-        print('jsd_start:');
-        var js='';
-        try{
-          var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
-          js=jsFile.readAsStringSync();
-        }catch(e){
-          print('jsd获取失败');
-        }
-        if(js!=''){
-          FlutterQjs? jsEngine = FlutterQjs(
-            stackSize: 1024 * 1024, // change stack size here.
-          );
-          try {
-            jsEngine.dispatch();
-            jsEngine.evaluate(js);
-            String base64Res=jsEngine.evaluate(subType+'("'+base64Encode(bytes)+'");') as String;
-            res=base64Decode(base64Res);
-            jsEngine.port.close(); // stop dispatch loop
-            jsEngine.close();      // close engine
-          } on JSError catch(e) {
-            print('jsd_error:');
-            print(e);            // catch reference leak exception
-          }
-          jsEngine = null;
-        }
-
-        break;
-
     }
     return res;
   }
@@ -395,7 +324,7 @@ class ExtendedNetworkImageProvider
           encryptSubType=urlArr[1];
         }
       }
-      Executor().warmUp(log: true,isolatesCount: 1);
+
       final Uri resolved = Uri.base.resolve(newUrl);
       final HttpClientResponse? response = await _tryGetResponse(resolved);
       if (response == null || response.statusCode != HttpStatus.ok) {
@@ -425,44 +354,23 @@ class ExtendedNetworkImageProvider
       }
 
       if(encryptType!=''){
-        if(encryptType=='h50--'){
+        if(encryptType=='h50'){
+          Executor().warmUp(log: true,isolatesCount: 1);
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
           data['type']=encryptType;
           data['subType']=encryptSubType;
           bytes = await Executor().execute<Map<String, dynamic>,dynamic,dynamic,dynamic,Uint8List>(arg1: data, fun1: decryptTest);
-        }else if(encryptType=='h50'){
+        }else if(encryptType=='js'){
           if(await Qjs().initJs()) {
-            String hexString = utf8.decode(bytes);
-            Uint8List encryptBytes = hexToUnitList(hexString);
-            List<int> ivBytes = [];
-            List<int> aesBytes = [];
-            for (var index = 0; index < encryptBytes.length; index++) {
-              if (index < 16) {
-                ivBytes.add(encryptBytes[index]);
-              } else {
-                aesBytes.add(encryptBytes[index]);
-              }
-            }
-            while (true) {
-              if (aesBytes.length % 16 != 0) {
-                aesBytes.add(0);
-              } else {
-                break;
-              }
-            }
-            String base64Key = 'unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
-
             try {
-              String base64Res = await Qjs().engine.evaluate('h50("' + base64Key + '","' + base64Encode(ivBytes) + '","' + base64Encode(aesBytes) + '");')  as String;
+              String base64Res = await Qjs().engine.evaluate(encryptSubType+'("'+base64Encode(bytes)+'");')  as String;
               bytes = base64Decode(base64Res);
             } on JSError catch (e) {
               print('jsd_error:');
-              print(e); // catch reference leak exception
+              print(e);
             }
           }
-
-
         }else{
           bytes=await decrypt(bytes, encryptType,encryptSubType);
         }
