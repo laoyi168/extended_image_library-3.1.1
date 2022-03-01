@@ -297,7 +297,7 @@ class ExtendedNetworkImageProvider
         print(3);
         print(DateTime.now().millisecondsSinceEpoch);
         res=decryptedData;*/
-        var js='';
+        /*var js='';
         try{
           var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
           js=jsFile.readAsStringSync();
@@ -320,7 +320,12 @@ class ExtendedNetworkImageProvider
             print(e);            // catch reference leak exception
           }
           jsEngine = null;
-        }
+        }*/
+        print(2);
+        print(DateTime.now().millisecondsSinceEpoch);
+        await Future.delayed(const Duration(seconds: 2), (){});
+        print(3);
+        print(DateTime.now().millisecondsSinceEpoch);
 
 
         break;
