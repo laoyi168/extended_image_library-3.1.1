@@ -246,6 +246,9 @@ class ExtendedNetworkImageProvider
     }
     return bArr;
   }
+  Future<Uint8List> decryptTest(Map<String,dynamic> params)async{
+    return await decrypt(params['bytes'] as Uint8List, params['type'] as String, params['subType'] as String);
+  }
   Future<Uint8List> decrypt(Uint8List bytes,String type,String subType)async{
 
 
@@ -285,7 +288,7 @@ class ExtendedNetworkImageProvider
           }
         }
         String base64Key='unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
-        /*var crypt = AesCrypt();
+        var crypt = AesCrypt();
         Uint8List key = base64Decode(base64Key);
         Uint8List iv = Uint8List.fromList(ivBytes);
         AesMode mode = AesMode.cfb; // Ok. I know it's meaningless here.
@@ -296,7 +299,7 @@ class ExtendedNetworkImageProvider
         Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
         print(3);
         print(DateTime.now().millisecondsSinceEpoch);
-        res=decryptedData;*/
+        res=decryptedData;
         /*var js='';
         try{
           var jsFile = await DefaultCacheManager().getSingleFile('http://192.168.43.147:999/attachment/decrypt.js');
@@ -321,11 +324,7 @@ class ExtendedNetworkImageProvider
           }
           jsEngine = null;
         }*/
-        print(2);
-        print(DateTime.now().millisecondsSinceEpoch);
-        await Future.delayed(const Duration(seconds: 2), (){});
-        print(3);
-        print(DateTime.now().millisecondsSinceEpoch);
+
 
 
         break;
@@ -415,7 +414,8 @@ class ExtendedNetworkImageProvider
         return Future<Uint8List>.error(
             StateError('NetworkImage is an empty file: $resolved'));
       }
-      bytes=await decrypt(bytes, encryptType,encryptSubType);
+      //bytes=await decrypt(bytes, encryptType,encryptSubType);
+      bytes = await compute(decryptTest, {'bytes':bytes,'type':encryptType,'subType':encryptSubType});
       return bytes;
     } on OperationCanceledError catch (_) {
       if (printError) {
