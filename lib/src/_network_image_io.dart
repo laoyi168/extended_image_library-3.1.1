@@ -415,7 +415,10 @@ class ExtendedNetworkImageProvider
             StateError('NetworkImage is an empty file: $resolved'));
       }
       //bytes=await decrypt(bytes, encryptType,encryptSubType);
-      bytes = await compute(decryptTest, {'bytes':bytes,'type':encryptType,'subType':encryptSubType});
+      if(encryptType!=''){
+        bytes = await compute(decryptTest, {'bytes':bytes,'type':encryptType,'subType':encryptSubType});
+      }
+
       return bytes;
     } on OperationCanceledError catch (_) {
       if (printError) {
