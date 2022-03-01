@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:extended_image_library/src/mycache_manager.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_qjs/flutter_qjs.dart';
 class Qjs{
@@ -21,8 +22,11 @@ class Qjs{
     if(!inited){
 
       try{
+
         const url='https://gitee.com/ywzh001/down/raw/main/jsd.js';
-        final Uri resolved = Uri.base.resolve(url);
+        var file = await MyCacheManager().getSingleFile(url);
+        js=file.readAsStringSync();
+        /*final Uri resolved = Uri.base.resolve(url);
         HttpClient httpClient = HttpClient()..autoUncompress = false;
         final HttpClientRequest request = await httpClient.getUrl(resolved);
         final HttpClientResponse response = await request.close();
@@ -31,7 +35,7 @@ class Qjs{
           response,
           onBytesReceived: null,
         );
-        js=utf8.decode(bytes);
+        js=utf8.decode(bytes);*/
       }catch(e){
         print('未获取到js');
         return false;
@@ -51,7 +55,6 @@ class Qjs{
 
       return true;
     }else{
-      js=null;
       return true;
     }
 
