@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui show Codec;
+import 'package:extended_image_library/src/qjs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http_client_helper/http_client_helper.dart';
@@ -424,12 +425,46 @@ class ExtendedNetworkImageProvider
       }
 
       if(encryptType!=''){
-        if(encryptType=='h50'||encryptType=='js'){
+        if(encryptType=='h50'){
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
           data['type']=encryptType;
           data['subType']=encryptSubType;
           bytes = await Executor().execute<Map<String, dynamic>,dynamic,dynamic,dynamic,Uint8List>(arg1: data, fun1: decryptTest);
+        }else if(encryptType=='js'){
+          if(await Qjs().initJs()) {
+            String hexString = utf8.decode(bytes);
+            Uint8List encryptBytes = hexToUnitList(hexString);
+            List<int> ivBytes = [];
+            List<int> aesBytes = [];
+            for (var index = 0; index < encryptBytes.length; index++) {
+              if (index < 16) {
+                ivBytes.add(encryptBytes[index]);
+              } else {
+                aesBytes.add(encryptBytes[index]);
+              }
+            }
+            while (true) {
+              if (aesBytes.length % 16 != 0) {
+                aesBytes.add(0);
+              } else {
+                break;
+              }
+            }
+            String base64Key = 'unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
+
+            try {
+              String base64Res = Qjs().engine.evaluate(
+                  'h50("' + base64Key + '","' + base64Encode(ivBytes) + '","' +
+                      base64Encode(aesBytes) + '");') as String;
+              bytes = base64Decode(base64Res);
+            } on JSError catch (e) {
+              print('jsd_error:');
+              print(e); // catch reference leak exception
+            }
+          }
+
+
         }else{
           bytes=await decrypt(bytes, encryptType,encryptSubType);
         }
