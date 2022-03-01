@@ -16,6 +16,7 @@ import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:aes_crypt_null_safe/aes_crypt_null_safe.dart';
 import 'package:isolate/isolate.dart';
+import 'package:worker_manager/worker_manager.dart';
 
 class ExtendedNetworkImageProvider
     extends ImageProvider<image_provider.ExtendedNetworkImageProvider>
@@ -39,6 +40,7 @@ class ExtendedNetworkImageProvider
     this.imageCacheName,
     this.cacheMaxAge,
   });
+  //final LoadBalancer? loadBalancer;
 
   /// The name of [ImageCache], you can define custom [ImageCache] to store this provider.
   @override
@@ -247,11 +249,11 @@ class ExtendedNetworkImageProvider
     }
     return bArr;
   }
-  Future<LoadBalancer> loadBalancer = LoadBalancer.create(2, IsolateRunner.spawn);
+  /*Future<LoadBalancer> loadBalancer = LoadBalancer.create(2, IsolateRunner.spawn);
   Future<Uint8List> useLoadBalancer(Map<String,dynamic> data) async {
     final lb = await loadBalancer;
     return await lb.run<Uint8List,Map<String,dynamic>>(decryptTest, data);
-  }
+  }*/
   Future<Uint8List> decryptTest(Map<String,dynamic> params)async{
     return await decrypt(params['bytes'] as Uint8List, params['type'] as String, params['subType'] as String);
   }
@@ -427,7 +429,8 @@ class ExtendedNetworkImageProvider
         data['bytes']=bytes;
         data['type']=encryptType;
         data['subType']=encryptSubType;
-        bytes = await useLoadBalancer( data );
+        //bytes = await useLoadBalancer( data );
+        bytes = await Executor().execute<Map<String, dynamic>,dynamic,dynamic,dynamic,Uint8List>(arg1: data, fun1: decryptTest);
       }
 
       return bytes;
