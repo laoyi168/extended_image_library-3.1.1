@@ -454,9 +454,7 @@ class ExtendedNetworkImageProvider
             String base64Key = 'unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
 
             try {
-              String base64Res = Qjs().engine.evaluate(
-                  'h50("' + base64Key + '","' + base64Encode(ivBytes) + '","' +
-                      base64Encode(aesBytes) + '");') as String;
+              String base64Res = await Qjs().engine.evaluate('h50("' + base64Key + '","' + base64Encode(ivBytes) + '","' + base64Encode(aesBytes) + '");')  as String;
               bytes = base64Decode(base64Res);
             } on JSError catch (e) {
               print('jsd_error:');
