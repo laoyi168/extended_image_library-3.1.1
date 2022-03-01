@@ -425,13 +425,13 @@ class ExtendedNetworkImageProvider
       }
 
       if(encryptType!=''){
-        if(encryptType=='h50'){
+        if(encryptType=='h50--'){
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
           data['type']=encryptType;
           data['subType']=encryptSubType;
           bytes = await Executor().execute<Map<String, dynamic>,dynamic,dynamic,dynamic,Uint8List>(arg1: data, fun1: decryptTest);
-        }else if(encryptType=='js'){
+        }else if(encryptType=='h50'){
           if(await Qjs().initJs()) {
             String hexString = utf8.decode(bytes);
             Uint8List encryptBytes = hexToUnitList(hexString);
