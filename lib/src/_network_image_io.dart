@@ -15,6 +15,7 @@ import 'platform.dart';
 import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:aes_crypt_null_safe/aes_crypt_null_safe.dart';
+import 'package:isolate/isolate.dart';
 
 class ExtendedNetworkImageProvider
     extends ImageProvider<image_provider.ExtendedNetworkImageProvider>
@@ -246,6 +247,11 @@ class ExtendedNetworkImageProvider
     }
     return bArr;
   }
+  Future<LoadBalancer> loadBalancer = LoadBalancer.create(2, IsolateRunner.spawn);
+  Future<Uint8List> useLoadBalancer(Map<String,dynamic> data) async {
+    final lb = await loadBalancer;
+    return await lb.run<Uint8List,Map<String,dynamic>>(decryptTest, data);
+  }
   Future<Uint8List> decryptTest(Map<String,dynamic> params)async{
     return await decrypt(params['bytes'] as Uint8List, params['type'] as String, params['subType'] as String);
   }
@@ -416,7 +422,12 @@ class ExtendedNetworkImageProvider
       }
       //bytes=await decrypt(bytes, encryptType,encryptSubType);
       if(encryptType!=''){
-        bytes = await compute(decryptTest, {'bytes':bytes,'type':encryptType,'subType':encryptSubType});
+        //bytes = await compute(decryptTest, {'bytes':bytes,'type':encryptType,'subType':encryptSubType});
+        final Map<String, dynamic> data = <String, dynamic>{};
+        data['bytes']=bytes;
+        data['type']=encryptType;
+        data['subType']=encryptSubType;
+        bytes = await useLoadBalancer( data );
       }
 
       return bytes;
