@@ -356,7 +356,7 @@ class ExtendedNetworkImageProvider
 
       if(encryptType!=''){
         if(encryptType=='h50'||encryptType=='xingba'){
-          Executor().warmUp(log: true,isolatesCount: 2);
+          await Executor().warmUp(log: true,isolatesCount: 2);
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
           data['type']=encryptType;
