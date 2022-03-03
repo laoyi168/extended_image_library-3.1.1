@@ -14,8 +14,6 @@ dependencies:
   path: ^1.7.0
   path_provider: ^2.0.1
   xxtea: ^2.1.0
-  flutter_qjs: ^0.3.6
-  flutter_cache_manager: ^3.3.0
   aes_crypt_null_safe: ^2.0.2
   worker_manager: ^4.2.6
 

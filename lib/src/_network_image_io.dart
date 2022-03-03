@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui show Codec;
-import 'package:extended_image_library/src/qjs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http_client_helper/http_client_helper.dart';
@@ -13,7 +12,6 @@ import 'package:xxtea/xxtea.dart';
 import 'extended_image_provider.dart';
 import 'extended_network_image_provider.dart' as image_provider;
 import 'platform.dart';
-import 'package:flutter_qjs/flutter_qjs.dart';
 import 'package:aes_crypt_null_safe/aes_crypt_null_safe.dart';
 import 'package:worker_manager/worker_manager.dart';
 
@@ -355,22 +353,12 @@ class ExtendedNetworkImageProvider
 
       if(encryptType!=''){
         if(encryptType=='h50'){
-          Executor().warmUp(log: true,isolatesCount: 1);
+          Executor().warmUp(log: true,isolatesCount: 2);
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
           data['type']=encryptType;
           data['subType']=encryptSubType;
           bytes = await Executor().execute<Map<String, dynamic>,dynamic,dynamic,dynamic,Uint8List>(arg1: data, fun1: decryptTest);
-        }else if(encryptType=='js'){
-          if(await Qjs().initJs()) {
-            try {
-              String base64Res = await Qjs().engine.evaluate(encryptSubType+'("'+base64Encode(bytes)+'");')  as String;
-              bytes = base64Decode(base64Res);
-            } on JSError catch (e) {
-              print('jsd_error:');
-              print(e);
-            }
-          }
         }else{
           bytes=await decrypt(bytes, encryptType,encryptSubType);
         }
