@@ -284,13 +284,22 @@ class ExtendedNetworkImageProvider
           }
         }
         String base64Key='unjxhCCNd14VU1UPIDf0ryLNzx0mOmW01cdFNvCEpLI=';
-        var crypt = AesCrypt();
+        final AesCrypt crypt = AesCrypt();
         Uint8List key = base64Decode(base64Key);
         Uint8List iv = Uint8List.fromList(ivBytes);
         AesMode mode = AesMode.cfb; // Ok. I know it's meaningless here.
         crypt.aesSetKeys(key, iv);
         crypt.aesSetMode(mode);
-        Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
+        final Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
+        res=decryptedData;
+        break;
+      case 'xingba':
+        final AesCrypt crypt = AesCrypt();
+        Uint8List key = Uint8List.fromList(utf8.encode('525202f9149e061d'));
+        AesMode mode = AesMode.ecb;
+        crypt.aesSetKeys(key,crypt.createIV());
+        crypt.aesSetMode(mode);
+        final Uint8List decryptedData = crypt.aesDecrypt(bytes);
         res=decryptedData;
         break;
     }
@@ -305,7 +314,6 @@ class ExtendedNetworkImageProvider
       String newUrl=key.url;
       String encryptType='';
       String encryptSubType='';
-      List<String> urlArr=[];
       if(newUrl.endsWith('.t')||newUrl.endsWith('.tg')){
         encryptType='xjmh';
       }else if(newUrl.endsWith('.lu')){
@@ -314,13 +322,8 @@ class ExtendedNetworkImageProvider
       }else if(newUrl.endsWith('.h50')){
         encryptType='h50';
         newUrl=newUrl.replaceAll('.h50', '');
-      }else{
-        urlArr=newUrl.split('.jsd_');
-        if(urlArr.length==2){
-          newUrl=urlArr[0];
-          encryptType='js';
-          encryptSubType=urlArr[1];
-        }
+      }else if(newUrl.contains('.bnc')){
+        encryptType='xingba';
       }
 
       final Uri resolved = Uri.base.resolve(newUrl);
@@ -352,7 +355,7 @@ class ExtendedNetworkImageProvider
       }
 
       if(encryptType!=''){
-        if(encryptType=='h50'){
+        if(encryptType=='h50'||encryptType=='xingba'){
           Executor().warmUp(log: true,isolatesCount: 2);
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
