@@ -380,6 +380,7 @@ class ExtendedNetworkImageProvider
     } finally {
       await chunkEvents?.close();
     }
+    print('图像加载失败');
     return null;
   }
 
