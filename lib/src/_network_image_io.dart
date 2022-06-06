@@ -355,18 +355,18 @@ class ExtendedNetworkImageProvider
       }
 
       if(encryptType!=''){
-        if(encryptType=='h50'||encryptType=='xingba'){
+        //if(encryptType=='h50'||encryptType=='xingba'){
           await Executor().warmUp(log: true,isolatesCount: 2);
           final Map<String, dynamic> data = <String, dynamic>{};
           data['bytes']=bytes;
           data['type']=encryptType;
           data['subType']=encryptSubType;
           bytes = await Executor().execute<Map<String, dynamic>,dynamic,dynamic,dynamic,Uint8List>(arg1: data, fun1: decryptTest);
-        }else{
+        /*}else{
           bytes=await decrypt(bytes, encryptType,encryptSubType);
-        }
+        }*/
       }
-      print(bytes);
+
       return bytes;
     } on OperationCanceledError catch (_) {
       if (printError) {
@@ -380,7 +380,7 @@ class ExtendedNetworkImageProvider
     } finally {
       await chunkEvents?.close();
     }
-    print('图像加载失败');
+
     return null;
   }
 
