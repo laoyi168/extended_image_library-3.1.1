@@ -366,7 +366,7 @@ class ExtendedNetworkImageProvider
           bytes=await decrypt(bytes, encryptType,encryptSubType);
         }
       }
-
+      print(bytes);
       return bytes;
     } on OperationCanceledError catch (_) {
       if (printError) {
