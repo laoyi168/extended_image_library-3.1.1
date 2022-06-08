@@ -265,7 +265,7 @@ class ExtendedNetworkImageProvider
         res=buffer.asUint8List(8);
         break;
       case 'h50':
-        /*String hexString=utf8.decode(bytes);
+        String hexString=utf8.decode(bytes);
         Uint8List encryptBytes=hexToUnitList(hexString);
         List<int> ivBytes=[];
         List<int> aesBytes=[];
@@ -291,17 +291,8 @@ class ExtendedNetworkImageProvider
         crypt.aesSetKeys(key, iv);
         crypt.aesSetMode(mode);
         final Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(aesBytes));
-        res=decryptedData;*/
-        final AesCrypt crypt = AesCrypt();
-        List<int> keylist = 'DQ0dDWk4aT5rOzs4'.codeUnits;
-        Uint8List key = Uint8List.fromList(keylist);
-        Uint8List iv = Uint8List.fromList(keylist);
-        AesMode mode = AesMode.cbc; // Ok. I know it's meaningless here.
-        crypt.aesSetKeys(key, iv);
-        crypt.aesSetMode(mode);
-        final Uint8List decryptedData = crypt.aesDecrypt(Uint8List.fromList(bytes));
-        print(decryptedData);
         res=decryptedData;
+
         break;
       case 'xingba':
         final AesCrypt crypt = AesCrypt();
